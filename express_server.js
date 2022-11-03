@@ -34,6 +34,20 @@ function generateRandomString() {
   return result;
 }
 
+function lookupUser(email) {
+  for (const key in users) {
+    if (users[key].email===email) {
+      return users[key];
+      
+    }
+  }return null;
+}
+
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
+});
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -41,6 +55,7 @@ app.get("/register", (req, res) => {
   const obj = users[req.cookies["user_id"]];
   const templateVars = { urls: urlDatabase, obj };
   res.render("register", templateVars);
+  res.redirect(`/register`);
   
 });
 
@@ -70,6 +85,20 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+
+
+app.get("/login", (req, res) => {
+  const obj = users[req.cookies["user_id"]];
+  const templateVars = { urls: urlDatabase, obj };
+  res.render("login", templateVars);
+
+});
+
+app.get("/u/:id", (req, res) => {
+  const longURL =  urlDatabase[req.params.id];
+  res.redirect(longURL);
+});
+
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const randomString = generateRandomString();
@@ -81,18 +110,12 @@ app.post("/urls", (req, res) => {
 
 app.post("/login", (req, res) => {
 
-  console.log(req.body);//require(body-parser)
+  //const obj = users[req.cookies["user_id"]];
+  //console.log("OBJ", obj);
+  //const templateVars = {obj};
   
   res.cookie("user_id", req.cookies["user_id"] );
-  const templateVars = {
-    users
-   
-  };
- //res.render("partials/_header", templateVars);
- // res.render("urls", templateVars);
-  //res.render("urls/new", templateVars);
-  //res.render("urls/show", templateVars);
- //res.render("urls_index", templateVars);
+  //res.render("login",templateVars);
   res.redirect(`/urls`); // redirect
   
 });
@@ -119,29 +142,26 @@ app.post("/urls/:id/", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  
+  console.log("OBJ o NULL",lookupUser(req.body.email));
+  
+if (req.body.email===""|| 
+    req.body.password===""||
+    lookupUser(req.body.email)!==null){
+  res.send("404")
+}
 
-  console.log(req.body);//require(body-parser)
+else{
+  
   const idrandom= generateRandomString();
-  users[idrandom]={id: idrandom, email: req.body.email, password: req.body.password }
+  users[idrandom]={
+    id: idrandom, 
+    email: req.body.email, 
+    password: req.body.password }
+
   console.log(users)
   res.cookie("user_id", idrandom);
-  
-  //console.log(req.body.username);
-  //res.cookie("username", req.body.username);
- // const templateVars = {
- //   username: req.cookies["username"],
-    // ... any other vars
- // };
  
-  res.redirect(`/urls`); // redirect
+  res.redirect(`/urls`); }// redirect
   
-});
-
-app.get("/u/:id", (req, res) => {
-  const longURL =  urlDatabase[req.params.id];
-  res.redirect(longURL);
-});
-
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
 });

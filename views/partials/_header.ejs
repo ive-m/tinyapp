@@ -17,7 +17,7 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
 
-        <% if(obj.email!==undefined){ %>
+        <% if(obj!==undefined){ %>
           <form method="POST" action="/sign-out">
             <label for="user">Looged in as: <%= obj.email %></label>
             <button type="submit">
@@ -28,11 +28,9 @@
 
 
         <% } else{ %> 
-          <form action="/login" method="POST">
-            <input type="email" placeholder="email" name="email">
-            <input type="password" placeholder="password" name="password">
-            <button type="submit">Login</button>
-          </form>
+          <a class="nav-item nav-link" href="/login">Login</a>
+        <a class="nav-item nav-link" href="/register">Register</a>
+
        <% } %> 
         
           
