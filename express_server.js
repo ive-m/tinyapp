@@ -8,8 +8,8 @@ app.use(cookieParser());
 
 
 const users = {
-  userRandomID: {
-    id: "userRandomID",
+  aJ48lW: {
+    id: "aJ48lW",
     email: "user@example.com",
     password: "purple-monkey-dinosaur",
   },
@@ -20,11 +20,27 @@ const users = {
   },
 };
 
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
+function urlsForUser(id) {
+  const urlByUserId={};
+  for (const key in urlDatabase) {
+    if(urlDatabase[key].userID===id){
+      urlByUserId[key]=urlDatabase[key];
+    }
+}return urlByUserId;
+  }
+  
 
 function generateRandomString() {
   let result = '';
@@ -60,8 +76,13 @@ app.get("/", (req, res) => {
 
 app.get("/register", (req, res) => {
   const obj = users[req.cookies["user_id"]];
-  const templateVars = { urls: urlDatabase, obj };
+  if (obj===undefined) {
+    const templateVars = { urls: urlDatabase, obj };
   res.render("register", templateVars);
+  
+  } else {
+    res.redirect("/urls"); 
+  }
   
 });
 
@@ -77,12 +98,12 @@ app.get("/urls", (req, res) => {
   const obj = users[req.cookies["user_id"]];
   console.log(obj);
  if (obj===undefined) {
-  res.send("PLEASE LOGIN FIRST"); 
+  res.send("PLEASE LOG IN FIRST"); 
  } else {
-  const templateVars = { urls: urlDatabase,obj};
+  //console.log("OBJ", obj)
+  const templateVars = { urls: urlsForUser(obj.id),obj};
   res.render("urls_index", templateVars);
  }
-  
   
   
 });
@@ -101,32 +122,73 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   const obj = users[req.cookies["user_id"]];
-  const templateVars = { id: req.params.id, obj, longURL: urlDatabase[req.params.id] };
-  res.render("urls_show", templateVars);
+  if (obj===undefined) {
+    res.send("Please log in");
+  } 
+  else {
+    const urlUserId=req.params.id;
+
+    const arrKeys= Object.keys(urlDatabase);
+    if (!arrKeys.includes(urlUserId)) {
+      res.send("That short url doenst exist");
+    }
+    else{
+      
+      if(obj.id!==urlDatabase[urlUserId].userID){
+        res.send("You dont own that url");
+      }
+      else
+      {
+        const templateVars = { id:urlUserId,obj,longURL: urlDatabase[urlUserId].longURL};
+      res.render("urls_show", templateVars); 
+    }
+    }
+
+    
+  }
+
 });
 
 
 
 app.get("/login", (req, res) => {
   
-  const obj = undefined;
-  const templateVars = { urls: urlDatabase, obj};
+  const obj = users[req.cookies["user_id"]];
+  if (obj===undefined) {
+    const templateVars = { urls: urlDatabase, obj};
   res.render("login", templateVars);
 
+  } else {
+    res.redirect("/urls");
+  }
+  
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL =  urlDatabase[req.params.id];
-  res.redirect(longURL);
+  const i=req.params.id;
+  if (urlDatabase[i]===undefined) {
+    res.send("Id doesnt exist");
+  } else {
+    const newlongURL =  urlDatabase[i].longURL;
+  res.redirect(newlongURL);
+  }
+  
 });
 
 app.post("/urls", (req, res) => {
-  const longURL = req.body.longURL;
-  const randomString = generateRandomString();
-  urlDatabase[randomString] = longURL;//add to database
-  res.send(res.redirect(`/urls/${randomString}`)); // redirect
+  const obj = users[req.cookies["user_id"]];
+  if (obj===undefined) {
+    res.send("Please login first");
+  }
+  else{
+    const newlongURL = req.body.longURL;
+    const randomString = generateRandomString();
+    const newObj={longURL: newlongURL, userID: obj.id};
+    urlDatabase[randomString]=newObj;//add to database
+    res.send(res.redirect(`/urls/${randomString}`)); // redirect}
   
-});
+  
+}});
 
 
 app.post("/login", (req, res) => {
@@ -147,14 +209,52 @@ app.post('/sign-out', (req, res) => {
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
-  res.redirect(`/urls`); // redirect
+
+  const obj = users[req.cookies["user_id"]];
+
+  if (obj===undefined) {
+    res.send("Please log in");//error message if the user is not logged in
+  } else {
+    const arrKeys= Object.keys(urlDatabase);
+
+    if (!arrKeys.includes(urlUserId)) {
+      res.send("That short url doenst exist");//return msg if id does not exist
+    }
+      
+    else {      
+ 
+        const idURL=req.params.id;
+
+        console.log(obj);
+        console.log(idURL);
+
+        if (obj.id!== urlDatabase[idURL].userID) {
+          res.send("You dont own that URL"); //error message if the user does not own the URL
+        } 
+        else {
+          delete urlDatabase[idURL];
+          res.redirect(`/urls`); // redirect
+        }
+    }
+
+  }
   
 });
 
 app.post("/urls/:id/", (req, res) => {
-  urlDatabase[req.params.id]=req.body.newURL;
-  res.redirect(`/urls`);
+  const obj = users[req.cookies["user_id"]];
+  const idURL=req.params.id;
+  if (obj===undefined) {
+    res.send("Please log in");
+  } else {
+    const arrKeys= Object.keys(urlDatabase);
+    if (!arrKeys.includes(idURL)) {
+      res.send("That id doenst exist");
+    } else {
+      urlDatabase[idURL].longURL=req.body.newURL;
+      res.redirect(`/urls`);}
+  
+    }
   
 });
 
