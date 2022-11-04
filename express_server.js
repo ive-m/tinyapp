@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
@@ -11,13 +12,17 @@ const users = {
   aJ48lW: {
     id: "aJ48lW",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: '$2a$10$ZfXjLZyDczPNZXTXo3sKiOoEEovi97dLaIxpUTeNRusUEXvIJCSEW',
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "d",
+    password: '$2a$10$FTYU91tjSkuvx8c/ztrgvuN/pz.v9d1Ruazx2fhB1bOgUJduQSyba',
   },
+  TwM7fR:{
+  id: 'TwM7fR',
+  email: 'ivesita.maria@gmail.com',
+  password: '$2a$10$3oqVEWSW0HoSHRTzMChvXOesS96zQbK5XXkzRAH0H3VqGEujHYOy6'},
 };
 
 
@@ -194,7 +199,8 @@ app.post("/urls", (req, res) => {
 app.post("/login", (req, res) => {
   const e= req.body.email;
 const u= lookupUser(e);
-  if (u===null|| u.password!==req.body.password) {
+
+  if (u===null|| !bcrypt.compareSync(req.body.password, u.password)) {
     res.send("403");
   }else {
     res.cookie("user_id", u.id );
@@ -202,6 +208,8 @@ const u= lookupUser(e);
   }
   
 });
+
+
 
 app.post('/sign-out', (req, res) => {
   res.clearCookie('user_id'); // Tell the browser to delete this cookie.
@@ -272,7 +280,7 @@ else{
   users[idrandom]={
     id: idrandom, 
     email: req.body.email, 
-    password: req.body.password }
+    password: bcrypt.hashSync(req.body.password, 10) }
 
   console.log(users)
   res.cookie("user_id", idrandom);
