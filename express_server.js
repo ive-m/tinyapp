@@ -49,7 +49,13 @@ app.listen(PORT, () => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  const obj = users[req.cookies["user_id"]];
+  console.log(obj);
+ if (obj!==undefined) {
+  res.redirect("/urls"); 
+ } else {
+  res.redirect("/login"); 
+ }
 });
 
 app.get("/register", (req, res) => {
@@ -69,15 +75,28 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const obj = users[req.cookies["user_id"]];
-  
+  console.log(obj);
+ if (obj===undefined) {
+  res.send("PLEASE LOGIN FIRST"); 
+ } else {
   const templateVars = { urls: urlDatabase,obj};
   res.render("urls_index", templateVars);
+ }
+  
+  
+  
 });
 
 app.get("/urls/new", (req, res) => {
   const obj = users[req.cookies["user_id"]];
   const templateVars = {obj};
-  res.render("urls_new",templateVars);
+  if (obj===undefined) {
+    res.redirect("/login"); 
+   } else {
+    const templateVars = { urls: urlDatabase,obj};
+    res.render("urls_new",templateVars);
+   }
+  
 });
 
 app.get("/urls/:id", (req, res) => {
