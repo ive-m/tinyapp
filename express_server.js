@@ -16,7 +16,7 @@ const users = {
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: "d",
   },
 };
 
@@ -51,24 +51,25 @@ app.listen(PORT, () => {
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
+
 app.get("/register", (req, res) => {
   const obj = users[req.cookies["user_id"]];
   const templateVars = { urls: urlDatabase, obj };
   res.render("register", templateVars);
-  res.redirect(`/register`);
   
 });
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
+
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.get("/urls", (req, res) => {
-  console.log("Url Database", urlDatabase);
   const obj = users[req.cookies["user_id"]];
+  
   const templateVars = { urls: urlDatabase,obj};
   res.render("urls_index", templateVars);
 });
@@ -88,8 +89,9 @@ app.get("/urls/:id", (req, res) => {
 
 
 app.get("/login", (req, res) => {
-  const obj = users[req.cookies["user_id"]];
-  const templateVars = { urls: urlDatabase, obj };
+  
+  const obj = undefined;
+  const templateVars = { urls: urlDatabase, obj};
   res.render("login", templateVars);
 
 });
@@ -109,41 +111,35 @@ app.post("/urls", (req, res) => {
 
 
 app.post("/login", (req, res) => {
-
-  //const obj = users[req.cookies["user_id"]];
-  //console.log("OBJ", obj);
-  //const templateVars = {obj};
-  
-  res.cookie("user_id", req.cookies["user_id"] );
-  //res.render("login",templateVars);
-  res.redirect(`/urls`); // redirect
+  const e= req.body.email;
+const u= lookupUser(e);
+  if (u===null|| u.password!==req.body.password) {
+    res.send("403");
+  }else {
+    res.cookie("user_id", u.id );
+    res.redirect("/urls"); // redirect
+  }
   
 });
 
 app.post('/sign-out', (req, res) => {
   res.clearCookie('user_id'); // Tell the browser to delete this cookie.
-  res.redirect('/');
+  res.redirect('/login');
 });
-//app.get('/login', (req, res) => {
-//  if(req.cookies.user===user){const templateVAr={user = user} res.render()}
-//});
-app.post("/urls/:id/delete", (req, res) => {
 
+app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect(`/urls`); // redirect
   
 });
 
 app.post("/urls/:id/", (req, res) => {
-
   urlDatabase[req.params.id]=req.body.newURL;
-  res.redirect(`/urls`); // redirect
+  res.redirect(`/urls`);
   
 });
 
 app.post("/register", (req, res) => {
-  
-  console.log("OBJ o NULL",lookupUser(req.body.email));
   
 if (req.body.email===""|| 
     req.body.password===""||
@@ -162,6 +158,6 @@ else{
   console.log(users)
   res.cookie("user_id", idrandom);
  
-  res.redirect(`/urls`); }// redirect
+  res.redirect(`/urls`); }
   
 });
