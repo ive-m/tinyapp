@@ -70,12 +70,11 @@ app.get("/urls/:id", (req, res) => {
     res.send("PLEASE LOG IN FIRST");
   } else {
     const shortURL = req.params.id;
-    const arrKeys = Object.keys(helpers.urlDatabase);
+    const arrKeys = Object.keys(helpers.urlDatabase);//array of short URLs
     if (!arrKeys.includes(shortURL)) {
       res.send("THAT SHORT URL DOES NOT EXIST");
     } else {
-        
-      if (obj.id !== helpers.urlDatabase[shortURL].userID) {
+      if (obj.id !== helpers.urlDatabase[shortURL].userID) {//user id doesnt match the url user id
         res.send("YOU DO NOT OWN THAT URL");
       } else {
         const templateVars = { id:shortURL,obj,longURL: helpers.urlDatabase[shortURL].longURL};
